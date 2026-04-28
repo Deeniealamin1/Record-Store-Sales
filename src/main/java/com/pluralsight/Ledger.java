@@ -11,4 +11,38 @@ import java.util.Scanner;
 public class Ledger {
     Scanner scanner = new Scanner(System.in);
     List<Transaction> transactions = new ArrayList<>();
+    public void displayMenu() {
+        boolean running = true;
+        while (running) {
+            System.out.println("\n--- LEDGER MENU ---");
+            System.out.println("A) All");
+            System.out.println("D) Deposits");
+            System.out.println("P) Payments");
+            System.out.println("R) Reports");
+            System.out.println("H) Home");
+            System.out.print("Select an option: ");
+
+            String choice = scanner.nextLine().toUpperCase();
+
+            switch (choice) {
+                case "A" -> displayTransactions();
+                case "D" -> displayTransactions(filterByAmount(true));
+                case "P" -> displayTransactions(filterByAmount(false));
+                case "R" -> runReports();
+                case "H" -> running = false;
+                default -> System.out.println("Invalid option.");
+            }
+        }
+    }
+
+    public void displayTransactions(){
+        try (BufferedReader bufReader = new BufferedReader(new FileReader("transaction.csv"))) {
+            String line;
+            while ((line = bufReader.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
 }
