@@ -55,7 +55,12 @@ public class Ledger {
                 case "A" -> displayTransactions();
                 case "D" -> displayTransactions(filterByAmount(true));
                 case "P" -> displayTransactions(filterByAmount(false));
-                case "R" -> runReports();
+                case "R" -> {
+                    boolean goHome = runReports();
+                    if (goHome) {
+                        running = false;
+                    }
+                }
                 case "H" -> running = false;
                 default -> System.out.println("Invalid option.");
             }
@@ -86,16 +91,17 @@ public class Ledger {
         return filtered;
     }
 
-    private void runReports() {
+    private boolean runReports() {
         System.out.println("-------Reports-------");
         System.out.println("1. Month To Date");
         System.out.println("2. Previous Month");
         System.out.println("3. Year To Date");
         System.out.println("4. Previous Year");
         System.out.println("5. Search By Vendor");
+        System.out.println("6. Custom Search");
         System.out.println("0. Back to Ledger Page");
         System.out.println("H. Home");
-        String reportChoice = scanner.nextLine();
+        String reportChoice = scanner.nextLine().toUpperCase();
 
         LocalDate now = LocalDate.now();
         List<Transaction> result = new ArrayList<>();
@@ -103,7 +109,8 @@ public class Ledger {
         switch (reportChoice) {
             case "1" -> {
                 for (Transaction t : transactions) {
-                    if (t.getDate().getMonthValue() == now.getMonthValue() && t.getDate().getYear() == now.getYear()) {
+                    if (t.getDate().getMonthValue() == now.getMonthValue()
+                            && t.getDate().getYear() == now.getYear()) {
                         result.add(t);
                     }
                 }
@@ -112,7 +119,8 @@ public class Ledger {
             case "2" -> {
                 LocalDate previousMonth = now.minusMonths(1);
                 for (Transaction t : transactions) {
-                    if (t.getDate().getMonthValue() == previousMonth.getMonthValue() && t.getDate().getYear() == previousMonth.getYear()) {
+                    if (t.getDate().getMonthValue() == previousMonth.getMonthValue()
+                            && t.getDate().getYear() == previousMonth.getYear()) {
                         result.add(t);
                     }
                 }
@@ -144,9 +152,72 @@ public class Ledger {
                 }
                 displayTransactions(result);
             }
-            case "0" -> { }
-            case "H" -> displayMenu();
+            case "6" -> customSearch();
+            case "0" -> { return false; }
+            case "H" -> { return true; }
             default -> System.out.println("Invalid option.");
+        }
+
+        return false;
+    }
+
+    private void customSearch() {
+        System.out.println("1. Start Date");
+        String startDate = scanner.nextLine().trim();
+
+        System.out.println("2. End Date");
+        String endDate = scanner.nextLine().trim();
+
+        System.out.println("3. Description");
+        String description = scanner.nextLine().trim();
+
+        System.out.println("4. Vendor");
+        String vendor = scanner.nextLine().trim();
+
+        System.out.println("5. Amount");
+        String amountInput = scanner.nextLine().trim();
+
+        double amount = 0;
+        boolean useAmount = false;
+
+        if (!amountInput.isEmpty()) {
+            amount = Double.parseDouble(amountInput);
+            useAmount = true;
+        }
+
+        LocalDate start = startDate.isEmpty() ? null : LocalDate.parse(startDate);
+        LocalDate end = endDate.isEmpty() ? null : LocalDate.parse(endDate);
+
+        for (Transaction transaction : transactions) {
+            boolean matches = true;
+
+            if (start != null && transaction.getDate().isBefore(start)) {
+                matches = false;
+            }
+
+            if (end != null && transaction.getDate().isAfter(end)) {
+                matches = false;
+            }
+
+            if (matches && !description.isEmpty()
+                    && !transaction.getDescription().toLowerCase().contains(description.toLowerCase())) {
+                matches = false;
+            }
+
+            if (matches && !vendor.isEmpty()
+                    && !transaction.getVendor().toLowerCase().contains(vendor.toLowerCase())) {
+                matches = false;
+            }
+
+            if (matches && useAmount) {
+                if (transaction.getAmount() != amount) {
+                    matches = false;
+                }
+            }
+
+            if (matches) {
+                System.out.println(transaction.toString());
+            }
         }
     }
 }
