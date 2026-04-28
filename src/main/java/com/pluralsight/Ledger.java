@@ -45,4 +45,22 @@ public class Ledger {
             System.out.println("Error: " + e.getMessage());
         }
     }
+    public void displayTransactions(List<Transaction> transactions){
+        for (Transaction t : transactions) {
+            System.out.println(t);
+        }
+    }
+
+    private List<Transaction> filterByAmount(boolean positive) {
+        List<Transaction> filtered = new ArrayList<>();
+
+        for (Transaction t : transactions) {
+            if (positive && t.getAmount() > 0) {
+                filtered.add(t);
+            } else if (!positive && t.getAmount() < 0) {
+                filtered.add(t);
+            }
+        }
+        return filtered;
+    }
 }
