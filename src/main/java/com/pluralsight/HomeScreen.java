@@ -37,7 +37,8 @@ public class HomeScreen {
                     System.out.println("Invalid option.");
             }
         }
-    }private void addDeposit() {
+    }
+    private void addDeposit() {
         System.out.println("Enter Deposit Information");
         System.out.println("Enter Description");
         String description = scanner.nextLine();
@@ -66,5 +67,12 @@ public class HomeScreen {
         String transactionInfo = LocalDate.now() + "|" + LocalTime.now() + "|" + description + "|" + vendorName + "|" + paymentAmount;
         saveTransaction(transactionInfo);
     }
-
+    private void saveTransaction(String info) {
+        try (FileWriter fileWriter = new FileWriter("transaction.csv", true)) {
+            fileWriter.write(info + "\n");
+        } catch (IOException e) {
+            System.out.println("Error saving transaction.");
+        }
+    }
 }
+
