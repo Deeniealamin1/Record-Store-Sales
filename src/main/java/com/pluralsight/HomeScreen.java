@@ -40,11 +40,11 @@ public class HomeScreen {
     }
     private void addDeposit() {
         System.out.println("Enter Deposit Information");
-        System.out.println("Enter Description");
+        System.out.println("Enter Description : ");
         String description = scanner.nextLine();
-        System.out.println("Enter Vendor Name");
+        System.out.println("Enter Vendor Name : ");
         String vendorName = scanner.nextLine();
-        System.out.println("Enter Amount");
+        System.out.println("Enter Amount : ");
         double amountInfo = scanner.nextDouble();
         scanner.nextLine();
 
@@ -54,11 +54,11 @@ public class HomeScreen {
 
     private void makePayment() {
         System.out.println("Enter Payment Information");
-        System.out.println("Enter Description");
+        System.out.println("Enter Description : ");
         String description = scanner.nextLine();
-        System.out.println("Enter Vendor Name");
+        System.out.println("Enter Vendor Name : ");
         String vendorName = scanner.nextLine();
-        System.out.println("Enter Amount");
+        System.out.println("Enter Amount : ");
         double amountInfo = scanner.nextDouble();
         scanner.nextLine();
 

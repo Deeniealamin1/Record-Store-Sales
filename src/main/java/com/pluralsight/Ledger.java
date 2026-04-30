@@ -1,25 +1,23 @@
 package com.pluralsight;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class Ledger {
     private Scanner scanner = new Scanner(System.in);
     private List<Transaction> transactions = new ArrayList<>();
 
     public Ledger() {
-        loadTransactions();
     }
 
     private void loadTransactions() {
         transactions.clear();
-        try (BufferedReader bufReader = new BufferedReader(new FileReader("transaction.csv"))) {
+        File file = new File("transaction.csv");
+        if (!file.exists()) return;
+
+        try (BufferedReader bufReader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = bufReader.readLine()) != null) {
                 String[] parts = line.split("\\|");
@@ -42,39 +40,46 @@ public class Ledger {
         while (running) {
             loadTransactions();
             System.out.println("\n--- LEDGER MENU ---");
-            System.out.println("A) All");
+            System.out.println("A) All Transactions");
             System.out.println("D) Deposits");
             System.out.println("P) Payments");
             System.out.println("R) Reports");
             System.out.println("H) Home");
             System.out.print("Select an option: ");
 
-            String choice = scanner.nextLine().toUpperCase();
+            String choice = scanner.nextLine().toUpperCase().trim();
 
             switch (choice) {
-                case "A" -> displayTransactions();
-                case "D" -> displayTransactions(filterByAmount(true));
-                case "P" -> displayTransactions(filterByAmount(false));
-                case "R" -> {
+                case "A":
+                    displayTransactions(transactions);
+                    break;
+                case "D":
+                    displayTransactions(filterByAmount(true));
+                    break;
+                case "P":
+                    displayTransactions(filterByAmount(false));
+                    break;
+                case "R":
                     boolean goHome = runReports();
-                    if (goHome) {
-                        running = false;
-                    }
-                }
-                case "H" -> running = false;
-                default -> System.out.println("Invalid option.");
+                    if (goHome) running = false;
+                    break;
+                case "H":
+                    running = false;
+                    break;
+                default:
+                    System.out.println("Invalid option.");
             }
         }
     }
 
-    public void displayTransactions() {
-        for (Transaction t : transactions) {
-            System.out.println(t.getDate() + "|" + t.getTime() + "|" + t.getDescription() + "|" + t.getVendor() + "|" + t.getAmount());
+    public void displayTransactions(List<Transaction> list) {
+        if (list.isEmpty()) {
+            System.out.println("No transactions found.");
+            return;
         }
-    }
-
-    public void displayTransactions(List<Transaction> transactions) {
-        for (Transaction t : transactions) {
+        List<Transaction> displayList = new ArrayList<>(list);
+        Collections.reverse(displayList);
+        for (Transaction t : displayList) {
             System.out.println(t.getDate() + "|" + t.getTime() + "|" + t.getDescription() + "|" + t.getVendor() + "|" + t.getAmount());
         }
     }
@@ -101,49 +106,49 @@ public class Ledger {
         System.out.println("6. Custom Search");
         System.out.println("0. Back to Ledger Page");
         System.out.println("H. Home");
-        String reportChoice = scanner.nextLine().toUpperCase();
+        System.out.print("Select an option: ");
 
+        String reportChoice = scanner.nextLine().toUpperCase().trim();
         LocalDate now = LocalDate.now();
         List<Transaction> result = new ArrayList<>();
 
         switch (reportChoice) {
-            case "1" -> {
+            case "1":
                 for (Transaction t : transactions) {
-                    if (t.getDate().getMonthValue() == now.getMonthValue()
-                            && t.getDate().getYear() == now.getYear()) {
+                    if (t.getDate().getMonth() == now.getMonth() && t.getDate().getYear() == now.getYear()) {
                         result.add(t);
                     }
                 }
                 displayTransactions(result);
-            }
-            case "2" -> {
-                LocalDate previousMonth = now.minusMonths(1);
+                break;
+            case "2":
+                LocalDate prevMonth = now.minusMonths(1);
                 for (Transaction t : transactions) {
-                    if (t.getDate().getMonthValue() == previousMonth.getMonthValue()
-                            && t.getDate().getYear() == previousMonth.getYear()) {
+                    if (t.getDate().getMonth() == prevMonth.getMonth() && t.getDate().getYear() == prevMonth.getYear()) {
                         result.add(t);
                     }
                 }
                 displayTransactions(result);
-            }
-            case "3" -> {
+                break;
+            case "3":
                 for (Transaction t : transactions) {
                     if (t.getDate().getYear() == now.getYear()) {
                         result.add(t);
                     }
                 }
                 displayTransactions(result);
-            }
-            case "4" -> {
+                break;
+            case "4":
+                int prevYear = now.minusYears(1).getYear();
                 for (Transaction t : transactions) {
-                    if (t.getDate().getYear() == now.getYear() - 1) {
+                    if (t.getDate().getYear() == prevYear) {
                         result.add(t);
                     }
                 }
                 displayTransactions(result);
-            }
-            case "5" -> {
-                System.out.println("Search by Vendor Name:");
+                break;
+            case "5":
+                System.out.print("Enter Vendor Name: ");
                 String vendorName = scanner.nextLine();
                 for (Transaction t : transactions) {
                     if (t.getVendor().equalsIgnoreCase(vendorName)) {
@@ -151,73 +156,46 @@ public class Ledger {
                     }
                 }
                 displayTransactions(result);
-            }
-            case "6" -> customSearch();
-            case "0" -> { return false; }
-            case "H" -> { return true; }
-            default -> System.out.println("Invalid option.");
+                break;
+            case "6":
+                customSearch();
+                break;
+            case "0":
+                return false;
+            case "H":
+                return true;
+            default:
+                System.out.println("Invalid option.");
         }
-
         return false;
     }
 
     private void customSearch() {
-        System.out.println("1. Start Date");
+        System.out.print("Start Date (YYYY-MM-DD): ");
         String startDate = scanner.nextLine().trim();
-
-        System.out.println("2. End Date");
+        System.out.print("End Date (YYYY-MM-DD): ");
         String endDate = scanner.nextLine().trim();
-
-        System.out.println("3. Description");
+        System.out.print("Description: ");
         String description = scanner.nextLine().trim();
-
-        System.out.println("4. Vendor");
+        System.out.print("Vendor: ");
         String vendor = scanner.nextLine().trim();
-
-        System.out.println("5. Amount");
+        System.out.print("Amount: ");
         String amountInput = scanner.nextLine().trim();
 
-        double amount = 0;
-        boolean useAmount = false;
-
-        if (!amountInput.isEmpty()) {
-            amount = Double.parseDouble(amountInput);
-            useAmount = true;
-        }
-
+        double amount = amountInput.isEmpty() ? 0 : Double.parseDouble(amountInput);
         LocalDate start = startDate.isEmpty() ? null : LocalDate.parse(startDate);
         LocalDate end = endDate.isEmpty() ? null : LocalDate.parse(endDate);
 
+        System.out.println("\n--- Custom Search Results ---");
         for (Transaction transaction : transactions) {
             boolean matches = true;
+            if (start != null && transaction.getDate().isBefore(start)) matches = false;
+            if (end != null && transaction.getDate().isAfter(end)) matches = false;
+            if (matches && !description.isEmpty() && !transaction.getDescription().toLowerCase().contains(description.toLowerCase())) matches = false;
+            if (matches && !vendor.isEmpty() && !transaction.getVendor().toLowerCase().contains(vendor.toLowerCase())) matches = false;
+            if (matches && !amountInput.isEmpty() && transaction.getAmount() != amount) matches = false;
 
-            if (start != null && transaction.getDate().isBefore(start)) {
-                matches = false;
-            }
-
-            if (end != null && transaction.getDate().isAfter(end)) {
-                matches = false;
-            }
-
-            if (matches && !description.isEmpty()
-                    && !transaction.getDescription().toLowerCase().contains(description.toLowerCase())) {
-                matches = false;
-            }
-
-            if (matches && !vendor.isEmpty()
-                    && !transaction.getVendor().toLowerCase().contains(vendor.toLowerCase())) {
-                matches = false;
-            }
-
-            if (matches && useAmount) {
-                if (transaction.getAmount() != amount) {
-                    matches = false;
-                }
-            }
-
-            if (matches) {
-                System.out.println(transaction.toString());
-            }
+            if (matches) System.out.println(transaction);
         }
     }
 }
